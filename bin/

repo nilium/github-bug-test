@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -eo pipefail
+while [ $# -gt 0 ]; do
+  v="$1"
+  if [[ "$v" != @@* ]] && [[ "$v" == @?* ]]; then
+    file="${v#@}"
+    cat "$file" |
+      jq -nc --rawfile v /dev/stdin '[(try ($v|fromjson) catch $v)]'
+  else
+    if [[ "$v" == @@* ]]; then
+      v="${v#@}"
+    fi
+    jq -nc --arg v "$v" '[(try ($v|fromjson) catch $v)]'
+  fi
+  shift
+done | jq -sc add
